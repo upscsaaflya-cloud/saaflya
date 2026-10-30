@@ -1,0 +1,267 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidExamCategory(cat) {
+      return cat is string && (cat == 'GPSC' || cat == 'UPSC');
+    }
+
+    // 1. Bookmark validation helper
+    function isValidBookmark(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             isValidExamCategory(data.examCategory) &&
+             data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 100 &&
+             data.questionText is string && data.questionText.size() >= 1 && data.questionText.size() <= 2000 &&
+             data.questionTextGu is string && data.questionTextGu.size() >= 1 && data.questionTextGu.size() <= 2000 &&
+             data.options is list && data.options.size() >= 2 && data.options.size() <= 6 && data.options[0] is string && data.options[0].size() <= 500 &&
+             data.optionsGu is list && data.optionsGu.size() >= 2 && data.optionsGu.size() <= 6 && data.optionsGu[0] is string && data.optionsGu[0].size() <= 500 &&
+             data.correctOptionIndex is int && data.correctOptionIndex >= 0 && data.correctOptionIndex < data.options.size() &&
+             data.explanation is string && data.explanation.size() >= 1 && data.explanation.size() <= 3000 &&
+             data.explanationGu is string && data.explanationGu.size() >= 1 && data.explanationGu.size() <= 3000 &&
+             data.referenceNote is string && data.referenceNote.size() >= 1 && data.referenceNote.size() <= 1000 &&
+             (!('personalNote' in data) || data.personalNote == null || (data.personalNote is string && data.personalNote.size() <= 1000)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /bookmarks/{bookmarkId} {
+      allow get: if isSignedIn() && isValidId(bookmarkId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(bookmarkId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'examCategory', 'subject', 'questionText', 'questionTextGu',
+                         'options', 'optionsGu', 'correctOptionIndex', 'explanation', 'explanationGu',
+                         'referenceNote', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'examCategory', 'subject', 'questionText', 'questionTextGu',
+                         'options', 'optionsGu', 'correctOptionIndex', 'explanation', 'explanationGu',
+                         'referenceNote', 'personalNote', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidBookmark(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(bookmarkId) &&
+                       isValidBookmark(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['personalNote', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(bookmarkId) && existing().userId == request.auth.uid;
+    }
+
+    // 2. MainsEvaluation validation helper
+    function isValidMainsEvaluation(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             isValidExamCategory(data.examCategory) &&
+             data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 100 &&
+             data.questionPrompt is string && data.questionPrompt.size() >= 1 && data.questionPrompt.size() <= 2000 &&
+             data.studentAnswer is string && data.studentAnswer.size() >= 1 && data.studentAnswer.size() <= 10000 &&
+             data.overallScore is int && data.overallScore >= 0 && data.overallScore <= 10 &&
+             data.introFeedback is string && data.introFeedback.size() >= 1 && data.introFeedback.size() <= 3000 &&
+             data.bodyFeedback is string && data.bodyFeedback.size() >= 1 && data.bodyFeedback.size() <= 3000 &&
+             data.conclusionFeedback is string && data.conclusionFeedback.size() >= 1 && data.conclusionFeedback.size() <= 3000 &&
+             data.keyPointsCovered is list && data.keyPointsCovered.size() <= 15 && (data.keyPointsCovered.size() == 0 || (data.keyPointsCovered[0] is string && data.keyPointsCovered[0].size() <= 500)) &&
+             data.improvementSuggestions is list && data.improvementSuggestions.size() <= 15 && (data.improvementSuggestions.size() == 0 || (data.improvementSuggestions[0] is string && data.improvementSuggestions[0].size() <= 500)) &&
+             data.modelAnswerSummary is string && data.modelAnswerSummary.size() >= 1 && data.modelAnswerSummary.size() <= 4000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /mains_evaluations/{evalId} {
+      allow get: if isSignedIn() && isValidId(evalId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(evalId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'examCategory', 'subject', 'questionPrompt', 'studentAnswer',
+                         'overallScore', 'introFeedback', 'bodyFeedback', 'conclusionFeedback',
+                         'keyPointsCovered', 'improvementSuggestions', 'modelAnswerSummary',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'examCategory', 'subject', 'questionPrompt', 'studentAnswer',
+                         'overallScore', 'introFeedback', 'bodyFeedback', 'conclusionFeedback',
+                         'keyPointsCovered', 'improvementSuggestions', 'modelAnswerSummary',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidMainsEvaluation(incoming());
+
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(evalId) && existing().userId == request.auth.uid;
+    }
+
+    // 3. SyllabusProgress validation helper
+    function isValidSyllabusProgress(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.topicKey is string && data.topicKey.size() >= 1 && data.topicKey.size() <= 120 &&
+             isValidExamCategory(data.examCategory) &&
+             data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 100 &&
+             data.topicTitleEn is string && data.topicTitleEn.size() >= 1 && data.topicTitleEn.size() <= 300 &&
+             data.topicTitleGu is string && data.topicTitleGu.size() >= 1 && data.topicTitleGu.size() <= 300 &&
+             data.completed is bool &&
+             data.questionsAttempted is int && data.questionsAttempted >= 0 && data.questionsAttempted <= 100000 &&
+             data.questionsCorrect is int && data.questionsCorrect >= 0 && data.questionsCorrect <= data.questionsAttempted &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /syllabus_progress/{progressId} {
+      allow get: if isSignedIn() && isValidId(progressId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(progressId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'topicKey', 'examCategory', 'subject', 'topicTitleEn',
+                         'topicTitleGu', 'completed', 'questionsAttempted', 'questionsCorrect',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'topicKey', 'examCategory', 'subject', 'topicTitleEn',
+                         'topicTitleGu', 'completed', 'questionsAttempted', 'questionsCorrect',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidSyllabusProgress(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(progressId) &&
+                       isValidSyllabusProgress(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().topicKey == existing().topicKey &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['completed', 'questionsAttempted', 'questionsCorrect', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(progressId) && existing().userId == request.auth.uid;
+    }
+
+    // 4. ForumTopic validation helper
+    function isValidForumTopic(data) {
+      return data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100 &&
+             isValidExamCategory(data.examCategory) &&
+             data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 100 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 250 &&
+             data.body is string && data.body.size() >= 1 && data.body.size() <= 4000 &&
+             (!('resourceTitle' in data) || data.resourceTitle == null || (data.resourceTitle is string && data.resourceTitle.size() <= 200)) &&
+             (!('resourceUrl' in data) || data.resourceUrl == null || (data.resourceUrl is string && data.resourceUrl.size() <= 500)) &&
+             data.upvoterIds is list && data.upvoterIds.size() <= 500 && (data.upvoterIds.size() == 0 || (data.upvoterIds[0] is string && data.upvoterIds[0].size() <= 128)) &&
+             data.upvoteCount is int && data.upvoteCount >= 0 && data.upvoteCount <= 100000 &&
+             data.replyCount is int && data.replyCount >= 0 && data.replyCount <= 100000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /forum_topics/{topicId} {
+      allow get: if isSignedIn() && isValidId(topicId) && isValidExamCategory(existing().examCategory);
+      allow list: if isSignedIn() && isValidExamCategory(existing().examCategory);
+
+      allow create: if isSignedIn() &&
+                       isValidId(topicId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'authorId', 'authorName', 'examCategory', 'subject', 'title',
+                         'body', 'upvoterIds', 'upvoteCount', 'replyCount', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'authorId', 'authorName', 'examCategory', 'subject', 'title',
+                         'body', 'resourceTitle', 'resourceUrl', 'upvoterIds', 'upvoteCount',
+                         'replyCount', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidForumTopic(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(topicId) &&
+                       isValidForumTopic(incoming()) &&
+                       incoming().authorId == existing().authorId &&
+                       incoming().examCategory == existing().examCategory &&
+                       incoming().subject == existing().subject &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Author edits topic content or shared study resource
+                         (existing().authorId == request.auth.uid &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'body', 'resourceTitle', 'resourceUrl', 'updatedAt'])) ||
+                         // Action 2: Community upvote toggle or reply counter update
+                         (incoming().diff(existing()).affectedKeys().hasOnly(['upvoterIds', 'upvoteCount', 'replyCount', 'updatedAt']))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(topicId) && existing().authorId == request.auth.uid;
+    }
+
+    // 5. ForumReply validation helper
+    function isValidForumReply(data) {
+      return isValidId(data.topicId) &&
+             data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100 &&
+             isValidExamCategory(data.examCategory) &&
+             data.body is string && data.body.size() >= 1 && data.body.size() <= 3000 &&
+             (!('resourceTitle' in data) || data.resourceTitle == null || (data.resourceTitle is string && data.resourceTitle.size() <= 200)) &&
+             (!('resourceUrl' in data) || data.resourceUrl == null || (data.resourceUrl is string && data.resourceUrl.size() <= 500)) &&
+             data.upvoterIds is list && data.upvoterIds.size() <= 500 && (data.upvoterIds.size() == 0 || (data.upvoterIds[0] is string && data.upvoterIds[0].size() <= 128)) &&
+             data.upvoteCount is int && data.upvoteCount >= 0 && data.upvoteCount <= 100000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /forum_replies/{replyId} {
+      allow get: if isSignedIn() && isValidId(replyId) && isValidId(existing().topicId);
+      allow list: if isSignedIn() && isValidId(existing().topicId) && isValidExamCategory(existing().examCategory);
+
+      allow create: if isSignedIn() &&
+                       isValidId(replyId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'topicId', 'authorId', 'authorName', 'examCategory', 'body',
+                         'upvoterIds', 'upvoteCount', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'topicId', 'authorId', 'authorName', 'examCategory', 'body',
+                         'resourceTitle', 'resourceUrl', 'upvoterIds', 'upvoteCount',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidForumReply(incoming()) &&
+                       exists(/databases/$(database)/documents/forum_topics/$(incoming().topicId));
+
+      allow update: if isSignedIn() &&
+                       isValidId(replyId) &&
+                       isValidForumReply(incoming()) &&
+                       incoming().authorId == existing().authorId &&
+                       incoming().topicId == existing().topicId &&
+                       incoming().examCategory == existing().examCategory &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Author edits reply text or resource
+                         (existing().authorId == request.auth.uid &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['body', 'resourceTitle', 'resourceUrl', 'updatedAt'])) ||
+                         // Action 2: Community helpful comment upvote toggle
+                         (incoming().diff(existing()).affectedKeys().hasOnly(['upvoterIds', 'upvoteCount', 'updatedAt']))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(replyId) && existing().authorId == request.auth.uid;
+    }
+  }
+}

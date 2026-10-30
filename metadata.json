@@ -1,0 +1,6 @@
+{
+  "name": "GPSCAI",
+  "description": "AI-powered GPSC and UPSC competitive exam preparation with bilingual Gujarati/English MCQ practice, Mains answer evaluation, and syllabus-aligned current affairs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

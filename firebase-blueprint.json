@@ -1,0 +1,406 @@
+{
+  "entities": {
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "A bookmarked Prelims MCQ or Current Affairs revision item saved by a student.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated user who owns this bookmark."
+        },
+        "examCategory": {
+          "type": "string",
+          "enum": ["GPSC", "UPSC"],
+          "description": "Exam category (GPSC Class 1-2 or UPSC)."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject name such as Indian Polity, Gujarat History & Culture, etc."
+        },
+        "questionText": {
+          "type": "string",
+          "description": "Question or current affairs prompt in English."
+        },
+        "questionTextGu": {
+          "type": "string",
+          "description": "Question or current affairs prompt in Gujarati."
+        },
+        "options": {
+          "type": "array",
+          "description": "English MCQ options."
+        },
+        "optionsGu": {
+          "type": "array",
+          "description": "Gujarati MCQ options."
+        },
+        "correctOptionIndex": {
+          "type": "integer",
+          "description": "0-based index of the correct MCQ option."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Detailed explanation in English."
+        },
+        "explanationGu": {
+          "type": "string",
+          "description": "Detailed explanation in Gujarati."
+        },
+        "referenceNote": {
+          "type": "string",
+          "description": "Syllabus reference note and source book."
+        },
+        "personalNote": {
+          "type": "string",
+          "description": "Optional personal revision note added by the student."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (clients must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp (clients must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "examCategory",
+        "subject",
+        "questionText",
+        "questionTextGu",
+        "options",
+        "optionsGu",
+        "correctOptionIndex",
+        "explanation",
+        "explanationGu",
+        "referenceNote",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MainsEvaluation": {
+      "title": "MainsEvaluation",
+      "description": "An AI-evaluated descriptive Mains answer submission with structured feedback.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated user who submitted the answer."
+        },
+        "examCategory": {
+          "type": "string",
+          "enum": ["GPSC", "UPSC"],
+          "description": "Target exam category."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject of the Mains question."
+        },
+        "questionPrompt": {
+          "type": "string",
+          "description": "The descriptive Mains question answered by the student."
+        },
+        "studentAnswer": {
+          "type": "string",
+          "description": "The student's descriptive answer text."
+        },
+        "overallScore": {
+          "type": "integer",
+          "description": "Score out of 10 awarded by the AI evaluator."
+        },
+        "introFeedback": {
+          "type": "string",
+          "description": "Evaluation of the Introduction section."
+        },
+        "bodyFeedback": {
+          "type": "string",
+          "description": "Evaluation of the Body section."
+        },
+        "conclusionFeedback": {
+          "type": "string",
+          "description": "Evaluation of the Conclusion section."
+        },
+        "keyPointsCovered": {
+          "type": "array",
+          "description": "Key syllabus points covered in the answer."
+        },
+        "improvementSuggestions": {
+          "type": "array",
+          "description": "Actionable suggestions for improving the Mains answer."
+        },
+        "modelAnswerSummary": {
+          "type": "string",
+          "description": "High-scoring model answer blueprint."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "examCategory",
+        "subject",
+        "questionPrompt",
+        "studentAnswer",
+        "overallScore",
+        "introFeedback",
+        "bodyFeedback",
+        "conclusionFeedback",
+        "keyPointsCovered",
+        "improvementSuggestions",
+        "modelAnswerSummary",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SyllabusProgress": {
+      "title": "SyllabusProgress",
+      "description": "Tracks a student's completion and quiz performance for a syllabus topic.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated user."
+        },
+        "topicKey": {
+          "type": "string",
+          "description": "Unique identifier for the syllabus topic."
+        },
+        "examCategory": {
+          "type": "string",
+          "enum": ["GPSC", "UPSC"],
+          "description": "Exam category."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject name."
+        },
+        "topicTitleEn": {
+          "type": "string",
+          "description": "Topic title in English."
+        },
+        "topicTitleGu": {
+          "type": "string",
+          "description": "Topic title in Gujarati."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the student marked this syllabus topic as completed."
+        },
+        "questionsAttempted": {
+          "type": "integer",
+          "description": "Number of MCQs attempted for this subject/topic."
+        },
+        "questionsCorrect": {
+          "type": "integer",
+          "description": "Number of MCQs answered correctly."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "topicKey",
+        "examCategory",
+        "subject",
+        "topicTitleEn",
+        "topicTitleGu",
+        "completed",
+        "questionsAttempted",
+        "questionsCorrect",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ForumTopic": {
+      "title": "ForumTopic",
+      "description": "A community discussion topic categorized by exam level (GPSC/UPSC) and subject, with optional shared study resource.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "UID of the authenticated user who created the discussion topic."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the topic author."
+        },
+        "examCategory": {
+          "type": "string",
+          "enum": ["GPSC", "UPSC"],
+          "description": "Exam category (GPSC or UPSC)."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject category (Indian Polity, Gujarat History & Culture, Geography, Indian Economy, General Science)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the discussion topic."
+        },
+        "body": {
+          "type": "string",
+          "description": "Detailed discussion post or question content."
+        },
+        "resourceTitle": {
+          "type": "string",
+          "description": "Optional title of a shared study resource (book chapter, official report, note, or link)."
+        },
+        "resourceUrl": {
+          "type": "string",
+          "description": "Optional URL or reference citation for the shared study resource."
+        },
+        "upvoterIds": {
+          "type": "array",
+          "description": "List of user UIDs who upvoted this topic."
+        },
+        "upvoteCount": {
+          "type": "integer",
+          "description": "Total number of upvotes."
+        },
+        "replyCount": {
+          "type": "integer",
+          "description": "Total number of replies posted to this topic."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "authorId",
+        "authorName",
+        "examCategory",
+        "subject",
+        "title",
+        "body",
+        "upvoterIds",
+        "upvoteCount",
+        "replyCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ForumReply": {
+      "title": "ForumReply",
+      "description": "A reply/comment on a community discussion topic with helpful upvote support and optional shared study resource.",
+      "type": "object",
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "description": "Document ID of the parent ForumTopic."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "UID of the authenticated user who posted the reply."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the reply author."
+        },
+        "examCategory": {
+          "type": "string",
+          "enum": ["GPSC", "UPSC"],
+          "description": "Exam category inherited from parent topic for query alignment."
+        },
+        "body": {
+          "type": "string",
+          "description": "Reply comment content."
+        },
+        "resourceTitle": {
+          "type": "string",
+          "description": "Optional shared study resource title."
+        },
+        "resourceUrl": {
+          "type": "string",
+          "description": "Optional shared study resource link or reference note."
+        },
+        "upvoterIds": {
+          "type": "array",
+          "description": "List of user UIDs who upvoted this reply as helpful."
+        },
+        "upvoteCount": {
+          "type": "integer",
+          "description": "Total helpful upvotes on this reply."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "topicId",
+        "authorId",
+        "authorName",
+        "examCategory",
+        "body",
+        "upvoterIds",
+        "upvoteCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/bookmarks/{bookmarkId}": {
+      "schema": {
+        "$ref": "#/entities/Bookmark"
+      },
+      "description": "Stores bookmarked Prelims MCQs and Current Affairs items per user."
+    },
+    "/mains_evaluations/{evalId}": {
+      "schema": {
+        "$ref": "#/entities/MainsEvaluation"
+      },
+      "description": "Stores AI-evaluated Mains descriptive answers per user."
+    },
+    "/syllabus_progress/{progressId}": {
+      "schema": {
+        "$ref": "#/entities/SyllabusProgress"
+      },
+      "description": "Stores syllabus topic completion and quiz stats per user."
+    },
+    "/forum_topics/{topicId}": {
+      "schema": {
+        "$ref": "#/entities/ForumTopic"
+      },
+      "description": "Stores community discussion topics categorized by exam level and subject."
+    },
+    "/forum_replies/{replyId}": {
+      "schema": {
+        "$ref": "#/entities/ForumReply"
+      },
+      "description": "Stores replies and helpful comments for discussion topics."
+    }
+  }
+}

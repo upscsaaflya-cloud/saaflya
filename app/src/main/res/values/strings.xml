@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">GPSCAI</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="auth_subtitle_en">AI-Powered GPSC Class 1-2 &amp; UPSC Civil Services Preparation</string>
+    <string name="auth_subtitle_gu">જીપીએસસી ક્લાસ ૧-૨ અને યુપીએસસી સ્પર્ધાત્મક પરીક્ષાની એઆઈ આધારિત તૈયારી</string>
+    <string name="tab_prelims">Prelims MCQ</string>
+    <string name="tab_mains">Mains AI</string>
+    <string name="tab_affairs">Affairs &amp; Syllabus</string>
+    <string name="tab_saved">Bookmarks</string>
+</resources>
